@@ -27,6 +27,10 @@ class FiltroImagenesApp:
         self.btn_gris = tk.Button(panel, text="Grises", command=self.aplicar_gris)
         self.btn_gris.pack(side=tk.LEFT, padx=5)
 
+        #Bton Negativo
+        self.btn_negativo = tk.Button(panel, text="Negativo", command=self.aplicar_negativo)
+        self.btn_negativo.pack(side=tk.LEFT, padx=5)
+
         #Restaurar imagen a RGB
         self.btn_nuevo = tk.Button(panel, text="Restaurar Original", command=self.restaurar_imagen)
         self.btn_nuevo.pack(side=tk.LEFT, padx=5)
@@ -72,6 +76,32 @@ class FiltroImagenesApp:
 
         self.mostrar_imagen(nueva_imagen)
 
+    def aplicar_negativo(self):
+        if self.imagen_original is None:
+            messagebox.showwarning("Aviso", "Carga una imagen primero")
+            return
+
+        # Creamos una copia para no sobreescribir la original y aseguramos modo RGB
+        nueva_imagen = self.imagen_original.copy().convert("RGB")
+
+        # Obtenemos los píxeles para manipularlos rápido
+        pixeles = nueva_imagen.load()
+        ancho, alto = nueva_imagen.size
+
+        # Inicio Escala de grises
+        for x in range(ancho):
+            for y in range(alto):
+                # Extraer canales R, G, B
+                r, g, b = pixeles[x, y]
+
+                # Aplicar la fórmula
+                gris = int(255-r + 255-g + 255-b)
+
+                # Asignar el nuevo color al píxel
+                pixeles[x, y] = (gris, gris, gris)
+
+
+        self.mostrar_imagen(nueva_imagen)
     def restaurar_imagen(self):
 
         if self.imagen_original:
