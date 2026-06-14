@@ -7,7 +7,7 @@ class FiltroImagenesApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Filtro Escala de Grises y Blur")
-        self.root.geometry("800x600")
+        self.root.geometry("900x600")
 
         self.imagen_original = None
         self.imagen_tk = None
@@ -25,7 +25,6 @@ class FiltroImagenesApp:
         self.btn_gris = tk.Button(panel, text="Grises", command=self.aplicar_gris)
         self.btn_gris.pack(side=tk.LEFT, padx=5)
 
-        # NUEVO BOTÓN: Blur
         self.btn_blur = tk.Button(panel, text="Blur (Desenfoque)", command=self.aplicar_blur)
         self.btn_blur.pack(side=tk.LEFT, padx=5)
 
@@ -34,6 +33,9 @@ class FiltroImagenesApp:
 
         self.btn_dilatacion = tk.Button(panel, text="Dilatación", command=self.aplicar_dilatacion)
         self.btn_dilatacion.pack(side=tk.LEFT, padx=5)
+
+        self.btn_erosion = tk.Button(panel, text="Erosión", command=self.aplicar_erosion)
+        self.btn_erosion.pack(side=tk.LEFT, padx=5)
 
         self.btn_nuevo = tk.Button(panel, text="Restaurar Original", command=self.restaurar_imagen)
         self.btn_nuevo.pack(side=tk.LEFT, padx=5)
@@ -195,6 +197,38 @@ class FiltroImagenesApp:
                             brillo = r + g + b 
                             if brillo > brillo_max:
                                 brillo_max = brillo
+                                color_final = (r, g, b)
+                
+                pixeles_nuevos[x, y] = color_final
+
+        self.mostrar_imagen(nueva_imagen)
+
+    def aplicar_erosion(self):
+        if self.imagen_original is None:
+            messagebox.showwarning("Aviso", "Carga una imagen primero")
+            return
+
+        img_lectura = self.imagen_original.convert("RGB")
+        pixeles_lectura = img_lectura.load()
+        ancho, alto = img_lectura.size
+
+        nueva_imagen = Image.new("RGB", (ancho, alto))
+        pixeles_nuevos = nueva_imagen.load()
+
+        for x in range(ancho):
+            for y in range(alto):
+                brillo_min = float('inf')
+                color_final = (255, 255, 255)
+
+                for i in range(-1, 2):
+                    for j in range(-1, 2):
+                        nx, ny = x + i, y + j
+
+                        if 0 <= nx < ancho and 0 <= ny < alto:
+                            r, g, b = pixeles_lectura[nx, ny]
+                            brillo = r + g + b 
+                            if brillo < brillo_min:
+                                brillo_min = brillo
                                 color_final = (r, g, b)
                 
                 pixeles_nuevos[x, y] = color_final
