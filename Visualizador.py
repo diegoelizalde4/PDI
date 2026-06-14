@@ -29,6 +29,12 @@ class FiltroImagenesApp:
         self.btn_blur = tk.Button(panel, text="Blur (Desenfoque)", command=self.aplicar_blur)
         self.btn_blur.pack(side=tk.LEFT, padx=5)
 
+        self.btn_sharpen = tk.Button(panel, text="Sharpen (Nitidez)", command=self.aplicar_sharpen)
+        self.btn_sharpen.pack(side=tk.LEFT, padx=5)
+
+        self.btn_dilatacion = tk.Button(panel, text="Dilatación", command=self.aplicar_dilatacion)
+        self.btn_dilatacion.pack(side=tk.LEFT, padx=5)
+
         self.btn_nuevo = tk.Button(panel, text="Restaurar Original", command=self.restaurar_imagen)
         self.btn_nuevo.pack(side=tk.LEFT, padx=5)
 
@@ -106,6 +112,92 @@ class FiltroImagenesApp:
 
                 # Asignamos el nuevo píxel
                 pixeles_nuevos[x, y] = (r_final, g_final, b_final)
+
+        self.mostrar_imagen(nueva_imagen)
+
+    def aplicar_sharpen(self):
+        if self.imagen_original is None:
+            messagebox.showwarning("Aviso", "Carga una imagen primero")
+            return
+
+        # Kernel de nitidez 3x3:
+        #  0  -1   0
+        # -1   5  -1
+        #  0  -1   0
+        kernel = [
+            [0, -1,  0],
+            [-1,  5, -1],
+            [0, -1,  0],
+        ]
+
+        img_lectura = self.imagen_original.convert("RGB")
+        pixeles_lectura = img_lectura.load()
+
+        ancho, alto = img_lectura.size
+
+        nueva_imagen = Image.new("RGB", (ancho, alto))
+        pixeles_nuevos = nueva_imagen.load()
+
+        for x in range(ancho):
+            for y in range(alto):
+                sumaR = 0
+                sumaG = 0
+                sumaB = 0
+
+                for i in range(-1, 2):
+                    for j in range(-1, 2):
+                        nx = x + i
+                        ny = y + j
+
+                        if 0 <= nx < ancho and 0 <= ny < alto:
+                            r, g, b = pixeles_lectura[nx, ny]
+                        else:
+                            # Borde: replicamos el píxel actual
+                            r, g, b = pixeles_lectura[x, y]
+
+                        peso = kernel[i + 1][j + 1]
+                        sumaR += r * peso
+                        sumaG += g * peso
+                        sumaB += b * peso
+
+                # Clamp a [0, 255]
+                pixeles_nuevos[x, y] = (
+                    max(0, min(255, sumaR)),
+                    max(0, min(255, sumaG)),
+                    max(0, min(255, sumaB)),
+                )
+
+        self.mostrar_imagen(nueva_imagen)
+
+    def aplicar_dilatacion(self):
+        if self.imagen_original is None:
+            messagebox.showwarning("Aviso", "Carga una imagen primero")
+            return
+
+        img_lectura = self.imagen_original.convert("RGB")
+        pixeles_lectura = img_lectura.load()
+        ancho, alto = img_lectura.size
+
+        nueva_imagen = Image.new("RGB", (ancho, alto))
+        pixeles_nuevos = nueva_imagen.load()
+
+        for x in range(ancho):
+            for y in range(alto):
+                brillo_max = -1
+                color_final = (0, 0, 0)
+
+                for i in range(-1, 2):
+                    for j in range(-1, 2):
+                        nx, ny = x + i, y + j
+
+                        if 0 <= nx < ancho and 0 <= ny < alto:
+                            r, g, b = pixeles_lectura[nx, ny]
+                            brillo = r + g + b 
+                            if brillo > brillo_max:
+                                brillo_max = brillo
+                                color_final = (r, g, b)
+                
+                pixeles_nuevos[x, y] = color_final
 
         self.mostrar_imagen(nueva_imagen)
 
